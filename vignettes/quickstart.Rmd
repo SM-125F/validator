@@ -1,0 +1,25 @@
+---
+title: "Validator quickstart guide"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quickstart guide}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This is a super-dirty guide to the `validator` package. This package provides
+tools to do repeated cross-validation.
+
+# Install and load
+The package currently resides on GitHub and should be installed with devtools
+```{r, eval=F}
+devtools::install_github("3inar/validator")
+
+library(validator)
+```
+
+# Usage example
+```{r}
+```
