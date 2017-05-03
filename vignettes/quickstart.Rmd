@@ -12,14 +12,53 @@ vignette: >
 This is a super-dirty guide to the `validator` package. This package provides
 tools to do repeated cross-validation.
 
-# Install and load
-The package currently resides on GitHub and should be installed with devtools
+The package currently resides only on GitHub and should be installed with devtools
 ```{r, eval=F}
-devtools::install_github("3inar/validator")
-
-library(validator)
+devtools::install_github("3inar/validator", build_vignettes=T)
 ```
 
 # Usage example
+First, define an experiment function. This function should take the two arguments
+`test_index` and `train_index`. It should return a test statistic and a train statistic by use of the `return_cv` function.
 ```{r}
+library(datasets)
+data(mtcars)
+
+experiment <- function(test_index, train_index) {
+  model <- lm(mpg~wt, data=mtcars, subset=train_index)
+  
+  test_mse <- mean((predict(model, mtcars[test_index, ]) - 
+                                   mtcars[test_index, ]$mpg)^2)
+  train_mse <- mean((predict(model) - mtcars[train_index, ]$mpg)^2)
+
+  return_cv(test_mse, train_mse)
+}
 ```
+
+With the experiment code set up, we can use `repeat_cv` to run our repeated cross-validation:
+```{r}
+library(validator)
+
+repetitions <- 500
+k <- 5
+n <- nrow(mtcars)
+
+results <- repeat_cv(experiment, n, repetitions, k)
+
+# results from the two first cross-validations
+head(results, 2)
+```
+
+Let's see how our model does under resampling:
+```{r}
+library(plyr)
+
+teststats <- laply(results, function(x) { x$test })
+trainstats <- laply(results, function(x) { x$train })
+
+boxplot(cbind(test=rowMeans(teststats), train=rowMeans(trainstats)))
+```
+
+# Conclusion
+That's really all there is to it: make a function that takes test/train index, 
+make sure to return a test and a train statistic.
