@@ -1,16 +1,15 @@
 #' @export
-repeat_cv <- function(.fun, nsamples, nresample=1000, nfolds=5) {
-  resultlist <- foreach::foreach(1:nresample) %dopar%
-  {
-    folds <- create_folds(strata, k=nfolds)
+repeat_cv <- function(.fun, n, repetitions=1000, k=5) {
+  resultlist <- plyr::rlply(repetitions, function() {
+    folds <- create_folds(n, k=k)
 
     estimates <- list()
-    for(i in 1:nfolds)
+    for(i in 1:k)
     {
         testindex <- folds[[i]]
-        trainindex <- which(!1:nsamples %in% testindex)
+        trainindex <- which(!1:n %in% testindex)
 
-        statistics <- .fun(trainindex=trainindex, testindex=testindex)
+        statistics <- .fun(train_index=trainindex, test_index=testindex)
 
         predtest <- statistics$test
         predtrain <- statistics$train
@@ -24,7 +23,7 @@ repeat_cv <- function(.fun, nsamples, nresample=1000, nfolds=5) {
     }
 
     pack_results(estimates)
-  }
+  })
 
   if (any(is.na(resultlist))) {
     warning("some (", sum(is.na(resultlist)), ") runs returned NA statistic, ",
